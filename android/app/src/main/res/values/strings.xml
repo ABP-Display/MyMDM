@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">MyMDM</string>
+    <string name="device_admin_description">MyMDM kiosk device owner</string>
+    <string name="sync_notification_channel">Gestion MyMDM</string>
+    <string name="sync_notification_title">MyMDM actif</string>
+    <string name="sync_notification_text">L’appareil reste connecté au serveur de gestion.</string>
+    <string name="location_notification_text">MyMDM recherche la position de l’appareil.</string>
+    <string name="screen_capture_accessibility_description">Permet à MyMDM de capturer l’écran géré lors des synchronisations, même lorsqu’une application autorisée est affichée.</string>
+</resources>
