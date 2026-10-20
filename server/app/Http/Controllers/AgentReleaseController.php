@@ -24,7 +24,7 @@ class AgentReleaseController extends Controller
     {
         $platform = $this->platform($request);
         if (! is_file($releases->fallbackApkPath())) {
-            throw ValidationException::withMessages(['apk' => 'Compilez l’agent de la plateforme et rendez son fichier accessible au serveur.']);
+            throw ValidationException::withMessages(['apk' => 'Build the platform agent and make its file accessible to the server.']);
         }
         $releases->useDefault($platform);
         AuditLog::query()->create(['user_id' => $request->user()->id, 'action' => 'AGENT_DEFAULT_SELECTED', 'payload' => ['platform' => $platform]]);
@@ -130,7 +130,7 @@ class AgentReleaseController extends Controller
 
     public function download(AgentRelease $release, AgentReleaseManager $releases): BinaryFileResponse
     {
-        abort_unless($releases->isDownloadable($release), 404, 'Agent introuvable.');
+        abort_unless($releases->isDownloadable($release), 404, 'Agent not found.');
 
         return response()->download(
             $releases->storedApkPath($release),

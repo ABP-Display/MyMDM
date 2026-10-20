@@ -43,7 +43,7 @@ class KioskAssetController extends Controller
         $type = $data['type'] === 'app' ? 'android_app' : $data['type'];
         $platform = $data['platform'] ?? $this->platformForType($type);
         if ($type !== 'file' && $platform !== $this->platformForType($type)) {
-            throw ValidationException::withMessages(['type' => 'Le type de paquet ne correspond pas à la plateforme sélectionnée.']);
+            throw ValidationException::withMessages(['type' => 'The package type does not match the selected platform.']);
         }
         $this->validateApplicationIdentifier($type, $data['package_name'] ?? null);
 
@@ -53,7 +53,7 @@ class KioskAssetController extends Controller
 
         $sha256 = hash_file('sha256', $upload->getRealPath());
         if (KioskAsset::withTrashed()->where('sha256', $sha256)->exists()) {
-            throw ValidationException::withMessages(['file' => 'Ce fichier existe déjà dans la bibliothèque.']);
+            throw ValidationException::withMessages(['file' => 'This file already exists in the library.']);
         }
         $originalName = basename($upload->getClientOriginalName());
         $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) ?: 'element';
@@ -61,7 +61,7 @@ class KioskAssetController extends Controller
         $storagePath = 'kiosk-assets/'.$sha256.'/'.$safeName;
         $storedPath = $upload->storeAs('kiosk-assets/'.$sha256, $safeName, 'local');
         if ($storedPath !== $storagePath) {
-            throw ValidationException::withMessages(['file' => 'Impossible de conserver ce fichier.']);
+            throw ValidationException::withMessages(['file' => 'Unable to save this file.']);
         }
 
         $isApplication = $type !== 'file';
@@ -121,11 +121,11 @@ class KioskAssetController extends Controller
             return;
         }
         if ($identifier === null || trim($identifier) === '') {
-            throw ValidationException::withMessages(['package_name' => 'L’identifiant de l’application est requis.']);
+            throw ValidationException::withMessages(['package_name' => 'The application ID is required.']);
         }
         $pattern = '/^[a-zA-Z0-9][a-zA-Z0-9_-]*(\.[a-zA-Z0-9][a-zA-Z0-9_-]*)+$/D';
         if (! preg_match($pattern, $identifier) || ($type === 'android_app' && $identifier === 'org.mymdm.agent')) {
-            throw ValidationException::withMessages(['package_name' => 'L’identifiant de l’application est invalide pour la plateforme choisie.']);
+            throw ValidationException::withMessages(['package_name' => 'The application ID is invalid for the selected platform.']);
         }
     }
 
@@ -139,11 +139,11 @@ class KioskAssetController extends Controller
         }
         if (! in_array($extension, $extensions[$type], true)) {
             $expected = strtoupper(implode(', ', $extensions[$type]));
-            throw ValidationException::withMessages(['file' => "Format incorrect pour cette plateforme. Formats acceptés : {$expected}."]);
+            throw ValidationException::withMessages(['file' => "Invalid format for this platform. Supported formats: {$expected}."]);
         }
         if ($extension === 'apk'
             && file_get_contents($path, false, null, 0, 2) !== 'PK') {
-            throw ValidationException::withMessages(['file' => 'Le paquet téléchargé est illisible ou ne correspond pas au format sélectionné.']);
+            throw ValidationException::withMessages(['file' => 'The uploaded package is unreadable or does not match the selected format.']);
         }
     }
 

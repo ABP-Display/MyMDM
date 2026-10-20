@@ -22,7 +22,7 @@ class DevicePolicyHistory
             }
         }
         if (($before['admin_pin_hash'] ?? null) !== ($after['admin_pin_hash'] ?? null)) {
-            $changes['admin_pin'] = ['from' => null, 'to' => 'Modifié'];
+            $changes['admin_pin'] = ['from' => null, 'to' => 'Changed'];
         }
         if ($action === 'DEVICE_POLICY_UPDATED' && $changes === []) {
             return;

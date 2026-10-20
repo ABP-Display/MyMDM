@@ -58,7 +58,7 @@ class ConfigurationController extends Controller
     public function regenerate(Request $request, Configuration $configuration, ConfigurationEnrollment $generator): JsonResponse
     {
         if ($configuration->platform !== 'android') {
-            throw ValidationException::withMessages(['platform' => 'Le QR Android est disponible uniquement pour les configurations Android.']);
+            throw ValidationException::withMessages(['platform' => 'Android QR codes are available only for Android configurations.']);
         }
         DB::transaction(function () use ($request, $configuration, $generator): void {
             $enrollment = $generator->generate($configuration);
@@ -179,19 +179,19 @@ class ConfigurationController extends Controller
         ]);
         $platform = $data['platform'] ?? $configuration?->platform ?? 'android';
         if ($configuration !== null && $platform !== $configuration->platform) {
-            throw ValidationException::withMessages(['platform' => 'La plateforme d’une configuration existante ne peut pas être modifiée.']);
+            throw ValidationException::withMessages(['platform' => 'An existing configuration’s platform cannot be changed.']);
         }
         $agentSource = $data['enrollment_agent_source'] ?? $configuration?->enrollment_agent_source ?? 'active';
         $agentReleaseId = $request->exists('enrollment_agent_release_id')
             ? ($data['enrollment_agent_release_id'] ?? null)
             : $configuration?->enrollment_agent_release_id;
         if ($agentSource === 'android' && $platform !== 'android') {
-            throw ValidationException::withMessages(['enrollment_agent_source' => 'La compilation Android est réservée à Android.']);
+            throw ValidationException::withMessages(['enrollment_agent_source' => 'The Android build can only be used with Android.']);
         }
         if ($agentSource === 'release') {
             $release = $agentReleaseId ? AgentRelease::query()->find($agentReleaseId) : null;
             if ($release === null || $release->platform !== $platform || ! app(AgentReleaseManager::class)->isDownloadable($release)) {
-                throw ValidationException::withMessages(['enrollment_agent_release_id' => 'Choisissez un agent disponible pour cette plateforme.']);
+                throw ValidationException::withMessages(['enrollment_agent_release_id' => 'Choose an available agent for this platform.']);
             }
         }
         $agentSelection = [
@@ -214,13 +214,13 @@ class ConfigurationController extends Controller
         PolicyPayload::validate($type, $url, $data['allowed_origins'], $data['orientation'], $apps, $libraryItems);
         $pin = ! empty($data['admin_pin']) ? AdminPin::hash($data['admin_pin']) : ($configuration?->policy['admin_pin_hash'] ?? null);
         if ($data['kiosk_enabled'] && ((in_array($type, ['web', 'web_single', 'web_open'], true) && $url === '') || $pin === null)) {
-            throw ValidationException::withMessages(['kiosk_enabled' => 'Le kiosque nécessite un code de maintenance et, pour le web, une URL.']);
+            throw ValidationException::withMessages(['kiosk_enabled' => 'Kiosk mode requires a maintenance PIN and, for web mode, a URL.']);
         }
         $wifi = null;
         if (trim($data['wifi_ssid'] ?? '') !== '') {
             $password = $data['wifi_password'] ?? $configuration?->wifi['password'] ?? '';
             if ($data['wifi_security_type'] === 'WPA' && strlen($password) < 8) {
-                throw ValidationException::withMessages(['wifi_password' => 'Le mot de passe WPA doit contenir au moins 8 caractères.']);
+                throw ValidationException::withMessages(['wifi_password' => 'The WPA password must contain at least 8 characters.']);
             }
             $wifi = [
                 'ssid' => trim($data['wifi_ssid']),
@@ -266,7 +266,7 @@ class ConfigurationController extends Controller
         $asset = KioskAsset::withTrashed()->find($id);
         if ($asset === null || $asset->type !== 'file' || ! in_array($asset->mime_type, ['image/jpeg', 'image/png', 'image/webp'], true)) {
             throw ValidationException::withMessages([
-                'launcher_background_image_id' => 'Sélectionnez une image PNG, JPEG ou WebP de la bibliothèque.',
+                'launcher_background_image_id' => 'Select a PNG, JPEG or WebP image from the library.',
             ]);
         }
 

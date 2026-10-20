@@ -3,13 +3,13 @@ services:
     image: postgres:16-alpine
     restart: always
     environment:
-      POSTGRES_DB: ${MYMDM_DATABASE_NAME:-mymdm}
-      POSTGRES_USER: ${MYMDM_DATABASE_USER:-mymdm}
-      POSTGRES_PASSWORD: ${MYMDM_DATABASE_PASSWORD:-mymdm}
+      POSTGRES_DB: ${MYMDM_DATABASE_NAME:-${DB_DATABASE:-mymdm}}
+      POSTGRES_USER: ${MYMDM_DATABASE_USER:-${DB_USERNAME:-mymdm}}
+      POSTGRES_PASSWORD: ${MYMDM_DATABASE_PASSWORD:-${DB_PASSWORD:-mymdm}}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${MYMDM_DATABASE_USER:-mymdm} -d ${MYMDM_DATABASE_NAME:-mymdm}"]
+      test: ["CMD-SHELL", "pg_isready -U ${MYMDM_DATABASE_USER:-${DB_USERNAME:-mymdm}} -d ${MYMDM_DATABASE_NAME:-${DB_DATABASE:-mymdm}}"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -30,14 +30,16 @@ services:
       APP_NAME: MyMDM
       APP_ENV: production
       APP_DEBUG: "false"
+      APP_LOCALE: en
+      APP_FALLBACK_LOCALE: en
       APP_URL: ${MYMDM_BASE_URL:-http://localhost:8380}
       MYMDM_BASE_URL: ${MYMDM_BASE_URL:-http://localhost:8380}
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: ${MYMDM_DATABASE_NAME:-mymdm}
-      DB_USERNAME: ${MYMDM_DATABASE_USER:-mymdm}
-      DB_PASSWORD: ${MYMDM_DATABASE_PASSWORD:-mymdm}
+      DB_DATABASE: ${MYMDM_DATABASE_NAME:-${DB_DATABASE:-mymdm}}
+      DB_USERNAME: ${MYMDM_DATABASE_USER:-${DB_USERNAME:-mymdm}}
+      DB_PASSWORD: ${MYMDM_DATABASE_PASSWORD:-${DB_PASSWORD:-mymdm}}
       SESSION_DRIVER: database
       CACHE_STORE: file
       QUEUE_CONNECTION: sync

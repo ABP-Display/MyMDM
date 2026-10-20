@@ -1,8 +1,8 @@
 import { Apple, Smartphone } from 'lucide-react';
 
 export const platformCatalog = {
-  android: { label: 'Android', short: 'Android', Icon: Smartphone, color: '#3f8f75', formats: '.apk', management: 'Appareil dédié / Device Owner' },
-  ios: { label: 'iOS / iPadOS', short: 'iOS', Icon: Apple, color: '#65727b', formats: '.ipa', management: 'Appareil supervisé' },
+  android: { label: 'Android', short: 'Android', Icon: Smartphone, color: '#FF8F00', formats: '.apk', management: 'Dedicated device / Device Owner' },
+  ios: { label: 'iOS / iPadOS', short: 'iOS', Icon: Apple, color: '#98815b', formats: '.ipa', management: 'Supervised device' },
 };
 
 export const platformIds = ['android'];

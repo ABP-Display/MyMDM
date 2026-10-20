@@ -207,6 +207,7 @@ class AdminController extends Controller
                 'reset_error' => $device->reset_error,
             ],
             'policy' => PolicyPayload::fromModel($device->policy, $device->organization?->name),
+            'permissions' => collect(['view', 'create', 'update', 'delete', 'commands'])->filter(fn ($permission) => request()->user()->canAccessOrganization($device->organization_id, $permission))->values(),
             'policy_status' => $device->policyStatus ? [
                 'revision' => $device->policyStatus->revision,
                 'status' => $device->policyStatus->status,
@@ -221,10 +222,11 @@ class AdminController extends Controller
             ),
             'commands' => $device->commands->map(fn (DeviceCommand $command) => $this->commandData($command))->values(),
             'history' => $this->deviceHistory($device),
-            'groups' => DeviceGroup::query()->orderBy('name')->get()->map(fn (DeviceGroup $group) => $this->groupData($group))->values(),
-            'organizations' => Organization::query()->orderBy('name')->get()->map(fn (Organization $organization) => $this->organizationData($organization))->values(),
+            'groups' => DeviceGroup::query()->when(! request()->user()->is_admin, fn ($query) => $query->whereIn('organization_id', request()->user()->organizations()->pluck('organizations.id')))->orderBy('name')->get()->map(fn (DeviceGroup $group) => $this->groupData($group))->values(),
+            'organizations' => Organization::query()->when(! request()->user()->is_admin, fn ($query) => $query->whereIn('id', request()->user()->organizations()->pluck('organizations.id')))->orderBy('name')->get()->map(fn (Organization $organization) => $this->organizationData($organization))->values(),
             'library_assets' => KioskAsset::query()->whereIn('platform', ['android', 'all'])->latest()->get()->map->present()->values(),
             'configurations' => Configuration::query()
+                ->when(! request()->user()->is_admin, fn ($query) => $query->whereKey($device->configuration_id))
                 ->where('platform', $device->platform ?: 'android')
                 ->orderBy('name')
                 ->get(['id', 'name', 'platform'])
@@ -309,7 +311,7 @@ class AdminController extends Controller
         $organizationId = $data['organization_id'] ?? $device->organization_id ?? Organization::default()->id;
         $groupId = $data['group_id'] ?? null;
         if ($groupId && ! DeviceGroup::query()->whereKey($groupId)->where('organization_id', $organizationId)->exists()) {
-            throw ValidationException::withMessages(['group_id' => 'Le groupe doit appartenir à la même organisation que l’appareil.']);
+            throw ValidationException::withMessages(['group_id' => 'The group must belong to the same organization as the device.']);
         }
         $device->update(['name' => trim($data['name']), 'organization_id' => $organizationId, 'group_id' => $groupId]);
         AuditLog::query()->create(['user_id' => $request->user()->id, 'device_id' => $device->id, 'action' => 'DEVICE_IDENTITY_UPDATED', 'payload' => ['name' => $device->name, 'organization_id' => $device->organization_id, 'group_id' => $device->group_id]]);
@@ -324,19 +326,19 @@ class AdminController extends Controller
             'value' => ['nullable', 'integer', 'min:0', 'max:100'],
             'force' => ['nullable', 'boolean'],
         ]);
-        abort_if($device->revoked_at !== null, 409, 'Un appareil révoqué ne peut pas recevoir de commande.');
+        abort_if($device->revoked_at !== null, 409, 'A revoked device cannot receive commands.');
 
         $payload = [];
         if ($data['type'] === 'agent_update') {
             $source = $releases->source($device->platform ?: 'android');
             if (! ($source['available'] ?? false)) {
-                throw ValidationException::withMessages(['type' => 'Aucun agent n’est disponible pour cette plateforme.']);
+                throw ValidationException::withMessages(['type' => 'No agent is available for this platform.']);
             }
             $isNewer = (int) $source['version_code'] > $device->agent_version_code
                 || ((int) $source['version_code'] === $device->agent_version_code
                     && (string) $source['version'] !== $device->agent_version);
             if (! $isNewer && ! ($data['force'] ?? false)) {
-                throw ValidationException::withMessages(['type' => 'Cet appareil utilise déjà la dernière version.']);
+                throw ValidationException::withMessages(['type' => 'This device already uses the latest release.']);
             }
             $payload = [
                 'version' => $source['version'],
@@ -346,10 +348,10 @@ class AdminController extends Controller
             ];
         } elseif (in_array($data['type'], ['set_volume', 'set_brightness'], true)) {
             if ($device->configuration_id !== null) {
-                throw ValidationException::withMessages(['type' => 'Modifiez le volume et la luminosité dans la configuration principale de cet appareil.']);
+                throw ValidationException::withMessages(['type' => 'Change volume and brightness in this device’s main configuration.']);
             }
             if (! array_key_exists('value', $data)) {
-                throw ValidationException::withMessages(['value' => 'Une valeur est requise.']);
+                throw ValidationException::withMessages(['value' => 'A value is required.']);
             }
             $payload = ['value' => (int) $data['value']];
         }
@@ -390,7 +392,7 @@ class AdminController extends Controller
     {
         if ($device->configuration_id !== null) {
             throw ValidationException::withMessages([
-                'configuration' => 'Désactivez le profil réutilisable avant de modifier directement la politique de cet appareil.',
+                'configuration' => 'Disable the reusable profile before editing this device’s policy directly.',
             ]);
         }
 
@@ -476,7 +478,7 @@ class AdminController extends Controller
         ]);
         $configuration = Configuration::query()->findOrFail($data['configuration_id']);
         if ($configuration->platform !== ($device->platform ?: 'android')) {
-            throw ValidationException::withMessages(['configuration_id' => 'La configuration doit utiliser la même plateforme que l’appareil.']);
+            throw ValidationException::withMessages(['configuration_id' => 'The configuration must use the same platform as the device.']);
         }
 
         DB::transaction(function () use ($request, $device, $configuration, $configurationPolicies): void {
@@ -524,7 +526,7 @@ class AdminController extends Controller
 
     public function deleteDevice(Request $request, Device $device)
     {
-        $request->validate(['confirmation' => ['required', 'in:SUPPRIMER']]);
+        $request->validate(['confirmation' => ['required', 'in:DELETE,SUPPRIMER']]);
         DB::transaction(function () use ($request, $device): void {
             $device = Device::query()->lockForUpdate()->findOrFail($device->id);
             if ($device->reset_status === 'pending') {
@@ -546,7 +548,7 @@ class AdminController extends Controller
     {
         DB::transaction(function () use ($request, $device): void {
             $device = Device::query()->lockForUpdate()->findOrFail($device->id);
-            abort_unless($device->reset_status === 'pending', 409, 'La commande a déjà été transmise ou aucune commande n’attend.');
+            abort_unless($device->reset_status === 'pending', 409, 'The command was already dispatched or no command is pending.');
             $device->update(['reset_status' => null, 'reset_id' => null, 'reset_error' => null]);
             AuditLog::query()->create(['user_id' => $request->user()->id, 'device_id' => $device->id, 'action' => 'DEVICE_RESET_CANCELLED', 'payload' => []]);
         });
@@ -556,10 +558,10 @@ class AdminController extends Controller
 
     public function resetDevice(Request $request, Device $device)
     {
-        $request->validate(['confirmation' => ['required', 'in:REINITIALISER']]);
+        $request->validate(['confirmation' => ['required', 'in:RESET,REINITIALISER']]);
         DB::transaction(function () use ($request, $device): void {
             $device = Device::query()->lockForUpdate()->findOrFail($device->id);
-            abort_if($device->revoked_at !== null, 409, 'Un appareil révoqué ne peut pas recevoir de commande.');
+            abort_if($device->revoked_at !== null, 409, 'A revoked device cannot receive commands.');
             if (in_array($device->reset_status, ['pending', 'dispatched'])) {
                 return;
             }
@@ -671,7 +673,7 @@ class AdminController extends Controller
         $asset = KioskAsset::withTrashed()->find($id);
         if ($asset === null || $asset->type !== 'file' || ! in_array($asset->mime_type, ['image/jpeg', 'image/png', 'image/webp'], true)) {
             throw ValidationException::withMessages([
-                'launcher_background_image_id' => 'Sélectionnez une image PNG, JPEG ou WebP de la bibliothèque.',
+                'launcher_background_image_id' => 'Select a PNG, JPEG or WebP image from the library.',
             ]);
         }
 

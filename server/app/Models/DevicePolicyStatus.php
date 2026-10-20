@@ -23,4 +23,3 @@ class DevicePolicyStatus extends Model
         return ['applied_at' => 'datetime'];
     }
 }
-

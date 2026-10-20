@@ -34,18 +34,18 @@ class PolicyPayload
     public static function validate(string $kioskType, string $url, array $allowedOrigins, string $orientation, array $allowedApps = [], array $libraryItems = []): void
     {
         if (! in_array($kioskType, ['web', 'web_single', 'web_open', 'app', 'launcher'], true)) {
-            throw ValidationException::withMessages(['kiosk_type' => 'Type de kiosque inconnu.']);
+            throw ValidationException::withMessages(['kiosk_type' => 'Unknown kiosk type.']);
         }
 
         if ($kioskType === 'app' && count($allowedApps) !== 1) {
-            throw ValidationException::withMessages(['allowed_apps' => 'Sélectionnez exactement une application.']);
+            throw ValidationException::withMessages(['allowed_apps' => 'Select exactly one application.']);
         }
         if ($kioskType === 'launcher' && count($allowedApps) === 0 && count($libraryItems) === 0) {
-            throw ValidationException::withMessages(['library_item_ids' => 'Ajoutez au moins une application ou un fichier à la bibliothèque.']);
+            throw ValidationException::withMessages(['library_item_ids' => 'Add at least one application or file to the library.']);
         }
         foreach ($allowedApps as $package) {
             if (! is_string($package) || ! preg_match('/^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)+$/D', $package) || $package === 'org.mymdm.agent') {
-                throw ValidationException::withMessages(['allowed_apps' => 'Identifiant d’application Android invalide.']);
+                throw ValidationException::withMessages(['allowed_apps' => 'Invalid Android application ID.']);
             }
         }
 

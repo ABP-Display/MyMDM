@@ -20,6 +20,7 @@ class MyMdmApiTest extends TestCase
 
         $user = User::query()->create([
             'name' => 'Admin',
+            'is_admin' => true,
             'email' => 'admin@example.org',
             'password' => Hash::make('secret'),
         ]);
@@ -73,6 +74,7 @@ class MyMdmApiTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Admin',
+            'is_admin' => true,
             'email' => 'admin@example.org',
             'password' => Hash::make('secret'),
         ]);

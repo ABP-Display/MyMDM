@@ -18,4 +18,3 @@ class AuditLog extends Model
         return ['payload' => 'array', 'created_at' => 'datetime'];
     }
 }
-

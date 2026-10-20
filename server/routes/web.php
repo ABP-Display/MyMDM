@@ -9,6 +9,8 @@ use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\KioskAssetController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\UserController;
+use App\Http\Middleware\ConsoleAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,7 +36,11 @@ Route::prefix('api/v1')->group(function (): void {
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-    Route::middleware('auth')->group(function (): void {
+    Route::middleware(['auth', ConsoleAccess::class])->group(function (): void {
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::patch('/users/{user}', [UserController::class, 'update']);
+        Route::delete('/users/{user}', [UserController::class, 'destroy']);
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::get('/dashboard', [AdminController::class, 'dashboard']);
         Route::get('/organizations', [OrganizationController::class, 'index']);

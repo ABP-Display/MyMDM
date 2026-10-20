@@ -8,6 +8,7 @@ use App\Models\DevicePolicyStatus;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class OrganizationManagementTest extends TestCase
@@ -124,6 +125,7 @@ class OrganizationManagementTest extends TestCase
         $device->update(['last_seen_at' => now()->subHours(7)]);
         $endpoint->getJson('/api/v1/devices')->assertJsonPath('0.sync_state', 'not_synchronized');
     }
+
     public function test_device_receives_its_configured_organization_name_and_later_changes(): void
     {
         $organization = Organization::factory()->create(['name' => 'Atelier & Équipe']);
@@ -145,17 +147,17 @@ class OrganizationManagementTest extends TestCase
             ->assertOk()->assertJsonPath('organization_name', 'Nouvelle organisation');
     }
 
-    public function test_default_organization_uses_the_instance_configuration(): void
+    public function test_default_organization_is_named_default(): void
     {
         Organization::query()->where('slug', 'default')->delete();
         config(['mymdm.organization_name' => 'Organisation configurée']);
-        $this->assertSame('Organisation configurée', Organization::default()->name);
+        $this->assertSame('Default', Organization::default()->name);
     }
 
     public function test_renamed_initial_migration_preserves_existing_tables_and_rollback(): void
     {
         $user = User::factory()->create();
-        \Illuminate\Support\Facades\DB::table('migrations')
+        DB::table('migrations')
             ->where('migration', '2026_09_04_000000_create_mymdm_tables')
             ->update(['migration' => '2026_09_04_000000_create_previous_tables']);
         $this->artisan('migrate', ['--force' => true, '--no-interaction' => true])->assertSuccessful();
@@ -163,5 +165,4 @@ class OrganizationManagementTest extends TestCase
         $this->artisan('migrate:rollback', ['--step' => 1, '--force' => true, '--no-interaction' => true])->assertSuccessful();
         $this->assertDatabaseHas('users', ['id' => $user->id]);
     }
-
 }

@@ -18,7 +18,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::query()->where('email', strtolower($credentials['email']))->first();
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! $user->is_active || ! Hash::check($credentials['password'], $user->password)) {
             AuditLog::query()->create([
                 'action' => 'LOGIN_FAILED',
                 'payload' => ['email' => strtolower($credentials['email'])],

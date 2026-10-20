@@ -12,7 +12,7 @@ class ConfigurationPolicyManager
     public function assign(Configuration $configuration, Device $device): void
     {
         if (($device->platform ?: 'android') !== ($configuration->platform ?: 'android')) {
-            throw new LogicException('La configuration doit utiliser la même plateforme que l’appareil.');
+            throw new LogicException('The configuration must use the same platform as the device.');
         }
 
         $device->update(['configuration_id' => $configuration->id]);

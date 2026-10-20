@@ -11,9 +11,10 @@ use Illuminate\Validation\Rule;
 
 class OrganizationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return Organization::query()
+            ->when(! $request->user()->is_admin, fn ($query) => $query->whereIn('id', $request->user()->organizations()->pluck('organizations.id')))
             ->withCount(['devices' => fn ($query) => $query->whereNull('revoked_at')])
             ->orderBy('name')
             ->get()
@@ -25,6 +26,7 @@ class OrganizationController extends Controller
                 'non_sync_threshold_hours' => $organization->non_sync_threshold_hours,
                 'is_default' => $organization->slug === 'default',
                 'devices_count' => $organization->devices_count,
+                'permissions' => $request->user()->is_admin ? ['view', 'create', 'update', 'delete', 'commands'] : json_decode($request->user()->organizations()->whereKey($organization->id)->first()->pivot->permissions, true),
             ]);
     }
 
@@ -87,8 +89,8 @@ class OrganizationController extends Controller
 
     public function destroy(Request $request, Organization $organization)
     {
-        abort_if($organization->slug === 'default', 409, 'L’organisation principale ne peut pas être supprimée.');
-        abort_if($organization->devices()->exists(), 409, 'Réaffectez les appareils de cette organisation avant de la supprimer.');
+        abort_if($organization->slug === 'default', 409, 'The default organization cannot be deleted.');
+        abort_if($organization->devices()->exists(), 409, 'Reassign this organization’s devices before deleting it.');
 
         $payload = ['organization_id' => $organization->id, 'name' => $organization->name];
         DB::transaction(function () use ($organization): void {

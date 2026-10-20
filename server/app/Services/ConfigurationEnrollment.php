@@ -18,20 +18,20 @@ class ConfigurationEnrollment
             $configuration = Configuration::query()->lockForUpdate()->findOrFail($configuration->id);
             $source = $this->agentPath($configuration);
             if (! is_file($source) || ! is_readable($source)) {
-                throw ValidationException::withMessages(['apk' => 'Publiez un APK agent avant de générer le QR code.']);
+                throw ValidationException::withMessages(['apk' => 'Publish an agent APK before generating a QR code.']);
             }
             $contents = file_get_contents($source);
             if ($contents === false) {
-                throw ValidationException::withMessages(['apk' => 'Impossible de lire l’APK agent.']);
+                throw ValidationException::withMessages(['apk' => 'Unable to read the agent APK.']);
             }
             $sha256 = hash('sha256', $contents);
             $path = 'enrollment-apks/'.$sha256.'.apk';
             $disk = Storage::disk('local');
             if (! $disk->exists($path) && ! $disk->put($path, $contents)) {
-                throw ValidationException::withMessages(['apk' => 'Impossible de conserver l’APK du QR code.']);
+                throw ValidationException::withMessages(['apk' => 'Unable to save the QR code APK.']);
             }
             if (hash_file('sha256', $disk->path($path)) !== $sha256) {
-                throw ValidationException::withMessages(['apk' => 'La copie conservée de l’APK est endommagée.']);
+                throw ValidationException::withMessages(['apk' => 'The saved APK copy is corrupted.']);
             }
             $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
             $payload = $this->qr->generate(
@@ -58,7 +58,7 @@ class ConfigurationEnrollment
         if ($source === 'release') {
             $release = $configuration->enrollmentAgentRelease;
             if ($release === null || $release->platform !== $configuration->platform || ! $this->releases->isDownloadable($release)) {
-                throw ValidationException::withMessages(['enrollment_agent_release_id' => 'L’agent sélectionné est introuvable ou incompatible.']);
+                throw ValidationException::withMessages(['enrollment_agent_release_id' => 'The selected agent could not be found or is incompatible.']);
             }
 
             return $this->releases->storedApkPath($release);

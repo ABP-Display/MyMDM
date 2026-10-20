@@ -88,7 +88,7 @@ class EnrollmentController extends Controller
     public function configurationQr(Configuration $configuration): JsonResponse
     {
         if ($configuration->platform !== 'android') {
-            throw ValidationException::withMessages(['configuration' => 'Cette plateforme utilise une autre procédure d’enrôlement. Consultez son guide.']);
+            throw ValidationException::withMessages(['configuration' => 'This platform uses a different enrollment procedure. See its guide.']);
         }
         $enrollment = $configuration->activeEnrollment()->firstOrFail();
 

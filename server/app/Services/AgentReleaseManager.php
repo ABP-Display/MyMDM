@@ -50,7 +50,7 @@ class AgentReleaseManager
     public function useDefault(string $platform = 'android'): void
     {
         if (! in_array($platform, ['android'], true)) {
-            throw new RuntimeException('Cette plateforme ne possède pas d’agent compilé par défaut.');
+            throw new RuntimeException('This platform does not have a bundled agent build.');
         }
         AgentRelease::query()->where('platform', $platform)->update(['active' => false]);
     }
@@ -103,7 +103,7 @@ class AgentReleaseManager
     public function store(UploadedFile $file, string $version, int $versionCode, string $platform = 'android'): AgentRelease
     {
         if (! in_array($platform, self::PLATFORMS, true)) {
-            throw new RuntimeException('Plateforme non prise en charge.');
+            throw new RuntimeException('Unsupported platform.');
         }
         if ($versionCode < 1) {
             throw new RuntimeException('version_code must be greater than 0');
@@ -111,12 +111,12 @@ class AgentReleaseManager
 
         $extension = strtolower($file->getClientOriginalExtension());
         if (! in_array($extension, self::EXTENSIONS[$platform], true)) {
-            throw new RuntimeException('Format non compatible avec la plateforme sélectionnée.');
+            throw new RuntimeException('The file format is not supported for the selected platform.');
         }
 
         $contents = file_get_contents($file->getRealPath());
         if ($contents === false) {
-            throw new RuntimeException('Impossible de lire le fichier agent.');
+            throw new RuntimeException('Unable to read the agent file.');
         }
 
         $sha256 = hash('sha256', $contents);
@@ -124,7 +124,7 @@ class AgentReleaseManager
         if ($existing && $this->isDownloadable($existing)) {
             if ($existing->version !== $version || $existing->version_code !== $versionCode) {
                 throw new RuntimeException(sprintf(
-                    'Ce fichier agent est identique à la version %s (build %d). Modifiez sa version puis reconstruisez-le.',
+                    'This agent file is identical to version %s (build %d). Update its version and rebuild it.',
                     $existing->version,
                     $existing->version_code,
                 ));
@@ -160,7 +160,7 @@ class AgentReleaseManager
     public function activate(AgentRelease $release): AgentRelease
     {
         if (! $this->isDownloadable($release)) {
-            throw new RuntimeException('Le fichier de cette version est introuvable.');
+            throw new RuntimeException('The file for this release could not be found.');
         }
 
         return DB::transaction(function () use ($release): AgentRelease {
@@ -174,10 +174,10 @@ class AgentReleaseManager
     public function delete(AgentRelease $release): void
     {
         if (Configuration::query()->where('enrollment_agent_release_id', $release->id)->exists()) {
-            throw new RuntimeException('Cet agent est utilisé par une configuration d’enrôlement. Choisissez un autre agent dans cette configuration avant de le supprimer.');
+            throw new RuntimeException('This agent is used by an enrollment configuration. Choose another agent in that configuration before deleting it.');
         }
         if ($release->active) {
-            throw new RuntimeException('Activez une autre version avant de supprimer celle-ci.');
+            throw new RuntimeException('Activate another release before deleting this one.');
         }
         if ($release->apk_path !== null) {
             Storage::disk('local')->delete($release->apk_path);

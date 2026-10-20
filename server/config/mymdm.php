@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'organization_name' => env('MYMDM_ORGANIZATION_NAME', 'Organisation principale'),
+    'organization_name' => env('MYMDM_ORGANIZATION_NAME', 'Default'),
     'version' => '0.4.0',
     'base_url' => env('MYMDM_BASE_URL', env('APP_URL', 'https://mdm.example.org')),
     'apk_path' => env('MYMDM_APK_PATH', base_path('../android/app/build/outputs/apk/debug/app-debug.apk')),

@@ -253,7 +253,7 @@ class DeviceApiController extends Controller
         /** @var Device $device */
         $device = $request->attributes->get('device');
         $contents = file_get_contents($data['screen']->getRealPath());
-        abort_if($contents === false, 422, 'Capture illisible.');
+        abort_if($contents === false, 422, 'Unable to read the screenshot.');
         $path = 'device-screens/'.$device->id.'.jpg';
         Storage::disk('local')->put($path, $contents);
         $device->update(['screen_path' => $path, 'screen_updated_at' => now()]);
@@ -321,7 +321,7 @@ class DeviceApiController extends Controller
             $finished = in_array($data['status'], ['applied', 'failed']);
             $command->update([
                 'status' => $data['status'],
-                'error_message' => $data['status'] === 'failed' ? ($data['error'] ?? 'Échec Android') : null,
+                'error_message' => $data['status'] === 'failed' ? ($data['error'] ?? 'Android failure') : null,
                 'dispatched_at' => $command->dispatched_at ?? now(),
                 'completed_at' => $finished ? now() : null,
             ]);
@@ -354,7 +354,7 @@ class DeviceApiController extends Controller
             $device = Device::query()->lockForUpdate()->findOrFail($device->id);
             abort_unless($device->reset_id === $data['reset_id'] &&
                 ($data['status'] === 'dispatched' ? $device->reset_status === 'pending' : in_array($device->reset_status, ['pending', 'dispatched'])), 409);
-            $device->update(['reset_status' => $data['status'], 'reset_error' => $data['status'] === 'failed' ? ($data['error'] ?? 'Échec Android') : null]);
+            $device->update(['reset_status' => $data['status'], 'reset_error' => $data['status'] === 'failed' ? ($data['error'] ?? 'Android failure') : null]);
             AuditLog::query()->create(['device_id' => $device->id, 'action' => 'DEVICE_RESET_'.strtoupper($data['status']), 'payload' => ['reset_id' => $device->reset_id, 'error' => $device->reset_error]]);
 
             return ['ok' => true];

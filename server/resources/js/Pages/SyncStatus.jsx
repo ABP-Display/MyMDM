@@ -10,7 +10,7 @@ export function isOnline(device, now = Date.now()) {
 
 export function ConnectivityStatus({ device }) {
   if (device.status === 'Revoked') {
-    return <span className="status-pill revoked"><Ban size={14} />Révoqué</span>;
+    return <span className="status-pill revoked"><Ban size={14} />Revoked</span>;
   }
 
   return isOnline(device)
@@ -21,10 +21,10 @@ export function ConnectivityStatus({ device }) {
 export default function SyncStatus({ device }) {
   const state = device.sync_state || 'pending';
   const content = {
-    synchronized: [<CheckCircle2 key="icon" size={14} />, 'Synchronisé'],
-    pending: [<Clock3 key="icon" size={14} />, 'En attente de synchronisation'],
-    not_synchronized: [<TriangleAlert key="icon" size={14} />, 'Non synchronisé'],
+    synchronized: [<CheckCircle2 key="icon" size={14} />, 'Synced'],
+    pending: [<Clock3 key="icon" size={14} />, 'Pending sync'],
+    not_synchronized: [<TriangleAlert key="icon" size={14} />, 'Out of sync'],
   }[state];
 
-  return <span className={`status-pill management-sync-${state}`} title={state === 'not_synchronized' ? `Aucune activité depuis plus de ${device.non_sync_threshold_hours || 24} h` : undefined}>{content}</span>;
+  return <span className={`status-pill management-sync-${state}`} title={state === 'not_synchronized' ? `No activity for more than ${device.non_sync_threshold_hours || 24} hours` : undefined}>{content}</span>;
 }

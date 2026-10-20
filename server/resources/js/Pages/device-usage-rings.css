@@ -18,7 +18,7 @@
   gap: 18px;
   padding: 14px 16px;
   border-radius: 12px;
-  background: rgba(120, 130, 145, 0.05);
+  background: rgba(116, 99, 79, 0.05);
 }
 
 .usage-ring {
@@ -36,7 +36,7 @@
 
 .usage-ring-track {
   fill: none;
-  stroke: rgba(120, 130, 145, 0.18);
+  stroke: rgba(116, 99, 79, 0.18);
   stroke-width: 7;
 }
 
@@ -47,10 +47,10 @@
   transition: stroke-dashoffset 0.6s ease;
 }
 
-.tone-normal .usage-ring-value { stroke: #3e8fb0; }
-.tone-warning .usage-ring-value { stroke: #d9a441; }
-.tone-critical .usage-ring-value { stroke: #c15b4a; }
-.tone-unknown .usage-ring-value { stroke: rgba(120, 130, 145, 0.4); }
+.tone-normal .usage-ring-value { stroke: #AD7418; }
+.tone-warning .usage-ring-value { stroke: #FF8F00; }
+.tone-critical .usage-ring-value { stroke: #C62828; }
+.tone-unknown .usage-ring-value { stroke: rgba(116, 99, 79, 0.4); }
 
 .usage-ring-center {
   position: absolute;
@@ -78,7 +78,7 @@
 }
 
 .usage-ring-info small {
-  color: rgba(107, 114, 128, 1);
+  color: rgba(116, 99, 79, 1);
   font-size: 0.78rem;
 }
 
@@ -91,7 +91,7 @@
 
 .usage-ring-remaining {
   font-size: 0.78rem;
-  color: rgba(107, 114, 128, 0.85);
+  color: rgba(116, 99, 79, 0.85);
 }
 
 @media (max-width: 640px) {

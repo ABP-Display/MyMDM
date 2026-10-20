@@ -47,7 +47,7 @@ class DevicePolicyHistoryTest extends TestCase
         $this->assertSame(2, $event['payload']['revision']);
         $this->assertEqualsCanonicalizing(['orientation', 'default_volume', 'default_brightness', 'admin_pin'], array_keys($event['payload']['changes']));
         $this->assertSame(['from' => 10, 'to' => 30], $event['payload']['changes']['default_volume']);
-        $this->assertSame('Modifié', $event['payload']['changes']['admin_pin']['to']);
+        $this->assertSame('Changed', $event['payload']['changes']['admin_pin']['to']);
         $this->assertStringNotContainsString('123456', json_encode($history));
         $this->assertStringNotContainsString('pbkdf2', json_encode($history));
         $this->assertCount(2, $history);

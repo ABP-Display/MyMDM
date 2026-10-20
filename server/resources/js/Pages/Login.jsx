@@ -19,19 +19,19 @@ export default function Login() {
       });
       router.visit('/');
     } catch (err) {
-      setError('Identifiants invalides');
+      setError('Invalid credentials');
     }
   }
 
   return (
     <main className="login-page">
       <form className="login-panel" onSubmit={submit}>
-        <div className="login-brand"><img className="login-logo" src="/mymdm-logo.svg" width="46" height="46" alt="" /><div><h1>MyMDM</h1><span>{organizationName || 'Console d’administration'}</span></div></div>
-        <p className="login-intro"><ShieldCheck size={18} />Gérez vos appareils et configurations kiosque en toute simplicité.</p>
+        <div className="login-brand"><img className="login-logo" src="/mymdm-logo.svg" width="46" height="46" alt="" /><div><h1>MyMDM</h1><span>{organizationName || 'Administration console'}</span></div></div>
+        <p className="login-intro"><ShieldCheck size={18} />Manage your devices and kiosk configurations with ease.</p>
         <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoFocus /></label>
-        <label>Mot de passe<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" /></label>
+        <label>Password<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" /></label>
         {error && <p className="error">{error}</p>}
-        <button type="submit">Connexion</button>
+        <button type="submit">Sign in</button>
       </form>
     </main>
   );

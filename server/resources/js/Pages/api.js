@@ -19,12 +19,12 @@ export async function api(path, init = {}) {
   } catch {
     const jsonStart = text.indexOf('{');
     if (jsonStart > 0) {
-      try { payload = JSON.parse(text.slice(jsonStart)); } catch { /* Réponse HTML ou texte du serveur. */ }
+      try { payload = JSON.parse(text.slice(jsonStart)); } catch { /* HTML or text response from the server. */ }
     }
   }
 
   if (response.redirected && new URL(response.url).pathname === '/login') {
-    throw new Error('Votre session a expiré. Reconnectez-vous avant de relancer l’import.');
+    throw new Error('Your session has expired. Sign in again before retrying the upload.');
   }
 
   if (!response.ok) {
@@ -38,14 +38,14 @@ export async function api(path, init = {}) {
 
 function readableServerError(text, status) {
   const cleaned = text.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
-  if (/POST Content-Length|post_max_size|upload_max_filesize/i.test(cleaned)) return 'Le fichier dépasse la taille autorisée par le serveur ou le proxy.';
-  if (status === 413) return 'Le fichier est trop volumineux pour le serveur ou le proxy.';
-  return cleaned && cleaned.length < 240 ? cleaned : `Le serveur a retourné une réponse invalide (${status}). Consultez les logs du serveur.`;
+  if (/POST Content-Length|post_max_size|upload_max_filesize/i.test(cleaned)) return 'The file exceeds the size limit allowed by the server or proxy.';
+  if (status === 413) return 'The file is too large for the server or proxy.';
+  return cleaned && cleaned.length < 240 ? cleaned : `The server returned an invalid response (${status}). Check the server logs.`;
 }
 
 export function dateLabel(value) {
   if (!value) return '-';
-  return new Intl.DateTimeFormat('fr-FR', {
+  return new Intl.DateTimeFormat('en-GB', {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(value));

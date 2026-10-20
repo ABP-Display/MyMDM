@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use App\Models\User;
-use Inertia\Inertia;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
 
+        Inertia::share('auth_user', fn () => request()->user()?->only(['id', 'name', 'email', 'is_admin', 'is_active']));
         Inertia::share('organization_name', fn () => config('mymdm.organization_name'));
 
         if (User::query()->exists()) {
@@ -43,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
         if ($email && $password) {
             User::query()->create([
                 'name' => 'Admin',
+                'is_admin' => true,
                 'email' => strtolower($email),
                 'password' => $password,
             ]);

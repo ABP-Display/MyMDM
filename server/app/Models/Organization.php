@@ -26,7 +26,7 @@ class Organization extends Model
     {
         return self::query()->firstOrCreate(
             ['slug' => 'default'],
-            ['name' => config('mymdm.organization_name')],
+            ['name' => 'Default'],
         );
     }
 

@@ -34,6 +34,19 @@ class DeviceActionsTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['device_id' => $device->id, 'action' => 'DEVICE_DELETED']);
     }
 
+    public function test_english_confirmation_words_are_required_for_the_english_console(): void
+    {
+        $device = $this->device();
+        $url = '/api/v1/devices/'.$device->id;
+        $this->actingAs(User::factory()->create());
+        $this->postJson($url.'/factory-reset', ['confirmation' => 'DELETE'])->assertUnprocessable();
+        $this->postJson($url.'/factory-reset', ['confirmation' => 'RESET'])->assertOk();
+        $this->assertDatabaseHas('devices', ['id' => $device->id, 'reset_status' => 'pending']);
+        $this->deleteJson($url, ['confirmation' => 'RESET'])->assertUnprocessable();
+        $this->deleteJson($url, ['confirmation' => 'DELETE'])->assertOk();
+        $this->assertSoftDeleted('devices', ['id' => $device->id]);
+    }
+
     public function test_offline_device_can_be_deleted_with_a_pending_reset(): void
     {
         $device = $this->device();
