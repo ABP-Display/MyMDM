@@ -43,7 +43,7 @@ export default function Layout({ children, title }) {
     <div className="shell">
       <button className={`sidebar-backdrop ${menuOpen ? 'visible' : ''}`} aria-label="Close menu" onClick={() => setMenuOpen(false)} />
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-heading"><div className="brand"><img className="brand-logo" src="/mymdm-logo.svg" width="34" height="34" alt="" /><div>MyMDM<small>{organizations.find((organization) => organization.id === organizationId)?.name || 'Device management'}</small></div></div><button className="sidebar-close" aria-label="Close menu" onClick={() => setMenuOpen(false)}><X /></button></div>
+        <div className="sidebar-heading"><div className="brand"><img className="brand-logo" src="/mymdm-logo.svg" width="34" height="34" alt="" /><div>MyMDM<small>Device Management</small></div></div><button className="sidebar-close" aria-label="Close menu" onClick={() => setMenuOpen(false)}><X /></button></div>
         <div className="organization-switcher">
           <label><span><Building2 size={14} />Organization</span><select value={organizationId} onChange={selectOrganization}>{organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}</select></label>
           {organizationError && <small className="organization-error">{organizationError}</small>}
